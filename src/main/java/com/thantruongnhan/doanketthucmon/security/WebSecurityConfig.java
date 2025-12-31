@@ -8,6 +8,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -59,17 +60,16 @@ public class WebSecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // QUAN TRỌNG: Thêm TẤT CẢ origins cần thiết
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000", // React frontend
-                "http://localhost:3001", // Socket.IO server (Node)
-                "http://localhost:4000", // Other frontend
-                "http://localhost:8081", // React Native/Expo app - THÊM DÒNG NÀY
-                "http://192.168.1.1:8081" // Mobile device IP (thay đổi theo IP thực tế)
-        ));
+        // Cho phép mọi origin trong development
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
 
-        // HOẶC cho phép mọi origin trong development (KHÔNG dùng trong production)
-        // configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        // Hoặc chỉ định cụ thể (dùng trong production)
+        // configuration.setAllowedOrigins(Arrays.asList(
+        // "http://localhost:3000",
+        // "http://localhost:3001",
+        // "http://localhost:4000",
+        // "http://localhost:8081"
+        // ));
 
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
@@ -81,30 +81,35 @@ public class WebSecurityConfig {
         return source;
     }
 
+    // QUAN TRỌNG: Disable hoàn toàn Security cho các endpoint public
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return (web) -> web.ignoring()
+                .requestMatchers(
+                        "/api/auth/register",
+                        "/api/auth/login",
+                        "/api/test/**",
+                        "/uploads/**",
+                        "/api/momo/**",
+                        "/api/payos/**",
+                        "/webhook/**");
+    }
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors() // BẬT CORS
+                .cors()
                 .and()
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // PUBLIC endpoints - KHÔNG CẦN authentication
-                        .requestMatchers("/api/auth/**").permitAll()
-                        .requestMatchers("/api/test/**").permitAll()
-                        .requestMatchers("/uploads/**").permitAll()
-                        .requestMatchers("/api/momo/**").permitAll()
-                        .requestMatchers("/api/payos/**").permitAll()
-                        .requestMatchers("/webhook/**").permitAll()
+                        // Các endpoint đã được ignore ở trên sẽ không đi qua đây
                         .requestMatchers("/api/customer/orders").permitAll()
-                        // Cho phép OPTIONS request (CORS preflight)
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
-                        // PROTECTED endpoints - CẦN authentication
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/employee/**").hasAnyRole("ADMIN", "EMPLOYEE")
                         .requestMatchers("/api/customer/**").hasAnyRole("ADMIN", "EMPLOYEE", "CUSTOMER")
-                        // Tất cả request khác cần authenticated
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
