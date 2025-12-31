@@ -9,7 +9,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -27,7 +26,6 @@ import com.thantruongnhan.doanketthucmon.security.services.UserDetailsImpl;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class AuthController {
 
         private final UserRepository userRepository;
@@ -48,10 +46,18 @@ public class AuthController {
 
         @PostMapping("register")
         public ResponseEntity<?> register(@RequestBody RegisterDto registerDto) {
+                // Kiểm tra username đã tồn tại
                 if (userRepository.existsByUsername(registerDto.getUsername())) {
                         return ResponseEntity
                                         .badRequest()
                                         .body(new MessageResponse("Username is taken!"));
+                }
+
+                // Kiểm tra email đã tồn tại (optional, nên có)
+                if (userRepository.existsByEmail(registerDto.getEmail())) {
+                        return ResponseEntity
+                                        .badRequest()
+                                        .body(new MessageResponse("Email is already in use!"));
                 }
 
                 User user = new User();
@@ -59,8 +65,19 @@ public class AuthController {
                 user.setPassword(passwordEncoder.encode(registerDto.getPassword()));
                 user.setEmail(registerDto.getEmail());
 
-                // set role từ string trong RegisterDto (ví dụ: "ADMIN" hoặc "USER")
-                Role roleEnum = Role.valueOf(registerDto.getRole().toUpperCase());
+                // Set role: Nếu không truyền role hoặc role rỗng, mặc định là USER
+                Role roleEnum;
+                if (registerDto.getRole() == null || registerDto.getRole().trim().isEmpty()) {
+                        roleEnum = Role.USER; // Mặc định
+                } else {
+                        try {
+                                roleEnum = Role.valueOf(registerDto.getRole().toUpperCase());
+                        } catch (IllegalArgumentException e) {
+                                // Nếu role không hợp lệ, mặc định là USER
+                                roleEnum = Role.USER;
+                        }
+                }
+
                 user.setRole(roleEnum);
 
                 userRepository.save(user);
