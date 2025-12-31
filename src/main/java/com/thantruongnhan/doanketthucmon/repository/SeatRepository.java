@@ -9,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Repository
 public interface SeatRepository extends JpaRepository<Seat, Long> {
@@ -24,15 +23,9 @@ public interface SeatRepository extends JpaRepository<Seat, Long> {
     @Query("SELECT s FROM Seat s WHERE s.showTime = :showTime AND s.status = 'AVAILABLE'")
     List<Seat> findAvailableSeatsByShowTime(@Param("showTime") ShowTime showTime);
 
-    // Tìm ghế theo tên và showtime
-    Optional<Seat> findBySeatNameAndShowTime(String seatName, ShowTime showTime);
-
     // Đếm số ghế theo status
     long countByStatus(SeatStatus status);
 
     // Đếm số ghế theo showtime và status
     long countByShowTimeAndStatus(ShowTime showTime, SeatStatus status);
-
-    // Kiểm tra ghế có tồn tại không
-    boolean existsBySeatNameAndShowTime(String seatName, ShowTime showTime);
 }
