@@ -32,15 +32,10 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Bỏ qua filter cho các endpoint public
-        String path = request.getServletPath();
-        if (isPublicEndpoint(path)) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         try {
             String jwt = parseJwt(request);
+
+            // Chỉ xử lý JWT nếu có token
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
                 String username = jwtUtils.getUserNameFromJwtToken(jwt);
 
@@ -68,16 +63,5 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         }
 
         return null;
-    }
-
-    // Kiểm tra xem endpoint có phải là public không
-    private boolean isPublicEndpoint(String path) {
-        return path.startsWith("/api/auth/") ||
-                path.startsWith("/api/test/") ||
-                path.startsWith("/uploads/") ||
-                path.startsWith("/api/momo/") ||
-                path.startsWith("/api/payos/") ||
-                path.startsWith("/webhook/") ||
-                path.equals("/api/customer/orders");
     }
 }

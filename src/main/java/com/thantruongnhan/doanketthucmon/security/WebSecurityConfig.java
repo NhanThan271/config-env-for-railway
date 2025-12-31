@@ -14,14 +14,13 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import java.util.Arrays;
 
 import com.thantruongnhan.doanketthucmon.security.jwt.AuthEntryPointJwt;
 import com.thantruongnhan.doanketthucmon.security.jwt.AuthTokenFilter;
 import com.thantruongnhan.doanketthucmon.security.services.UserDetailsServiceImpl;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import java.util.Arrays;
 
 @Configuration
 @EnableMethodSecurity(prePostEnabled = true)
@@ -59,12 +58,23 @@ public class WebSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", // React frontend
+
+        // QUAN TRỌNG: Thêm TẤT CẢ origins cần thiết
+        configuration.setAllowedOrigins(Arrays.asList(
+                "http://localhost:3000", // React frontend
                 "http://localhost:3001", // Socket.IO server (Node)
-                "http://localhost:4000"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                "http://localhost:4000", // Other frontend
+                "http://localhost:8081", // React Native/Expo app - THÊM DÒNG NÀY
+                "http://192.168.1.1:8081" // Mobile device IP (thay đổi theo IP thực tế)
+        ));
+
+        // HOẶC cho phép mọi origin trong development (KHÔNG dùng trong production)
+        // configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -74,26 +84,27 @@ public class WebSecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors() // BẬT CORS (Spring sẽ tự dùng CorsConfigurationSource)
+                .cors() // BẬT CORS
                 .and()
                 .csrf(csrf -> csrf.disable())
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/api/auth/**",
-                                "/api/test/**",
-                                "/uploads/**",
-                                // === Cho MoMo ===
-                                "/api/momo/**",
-                                "/api/payos/**",
-                                "/webhook/**")
-                        .permitAll()
+                        // PUBLIC endpoints - KHÔNG CẦN authentication
+                        .requestMatchers("/api/auth/**").permitAll()
+                        .requestMatchers("/api/test/**").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/api/momo/**").permitAll()
+                        .requestMatchers("/api/payos/**").permitAll()
+                        .requestMatchers("/webhook/**").permitAll()
                         .requestMatchers("/api/customer/orders").permitAll()
+                        // Cho phép OPTIONS request (CORS preflight)
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        // PROTECTED endpoints - CẦN authentication
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/employee/**").hasAnyRole("ADMIN", "EMPLOYEE")
                         .requestMatchers("/api/customer/**").hasAnyRole("ADMIN", "EMPLOYEE", "CUSTOMER")
+                        // Tất cả request khác cần authenticated
                         .anyRequest().authenticated());
 
         http.authenticationProvider(authenticationProvider());
