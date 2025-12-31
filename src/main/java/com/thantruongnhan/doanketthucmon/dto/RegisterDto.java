@@ -1,5 +1,8 @@
 package com.thantruongnhan.doanketthucmon.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true) // Ignore các field không có trong class
 public class RegisterDto {
     private String username;
     private String email;
