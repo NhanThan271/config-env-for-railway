@@ -31,11 +31,11 @@ public class Seat {
     private Integer number; // 1, 2, 3, 4, 5, 6, 7, 8, 9
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "seat_type", nullable = false) // ✅ Đổi tên cột để tránh từ khóa SQL
     private SeatType type; // NORMAL, VIP
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "seat_status", nullable = false) // ✅ Đổi tên cột để tránh từ khóa SQL
     private SeatStatus status; // AVAILABLE, BOOKED, SELECTED, RESERVED
 
     @Column(nullable = false)
@@ -45,12 +45,13 @@ public class Seat {
     @JoinColumn(name = "user_id")
     private User reservedBy; // Người đang giữ ghế tạm thời
 
+    @Column(name = "reserved_until") // Thêm name cho rõ ràng
     private LocalDateTime reservedUntil; // Thời gian hết hạn giữ ghế
 
-    @Column(nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Column(nullable = false)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @PreUpdate
