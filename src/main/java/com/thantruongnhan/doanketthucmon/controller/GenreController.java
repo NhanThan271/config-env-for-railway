@@ -31,19 +31,19 @@ public class GenreController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    @PreAuthorize("hasRole('ADMIN')")
     public Genre createGenre(@RequestBody Genre genre) {
         return genreService.createGenre(genre);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    @PreAuthorize("hasRole('ADMIN')")
     public Genre updateGenre(@PathVariable Long id, @RequestBody Genre genre) {
         return genreService.updateGenre(id, genre);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteGenre(@PathVariable Long id) {
         genreService.deleteGenre(id);
     }
