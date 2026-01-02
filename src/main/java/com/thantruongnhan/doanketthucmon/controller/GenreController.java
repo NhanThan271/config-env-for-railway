@@ -13,7 +13,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/customer/genres")
 @RequiredArgsConstructor
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:8081")
 public class GenreController {
 
     private final GenreService genreService;

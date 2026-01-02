@@ -15,7 +15,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/customer/movies")
 @RequiredArgsConstructor
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:8081")
 public class MovieController {
 
     private final MovieService movieService;
@@ -46,7 +46,6 @@ public class MovieController {
                 title, description, duration, rating, status, genreIds, poster);
     }
 
-    // 👉 UPDATE MOVIE
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public Movie updateMovie(
