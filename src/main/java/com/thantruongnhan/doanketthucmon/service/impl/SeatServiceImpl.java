@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 
 import com.thantruongnhan.doanketthucmon.entity.Room;
 import com.thantruongnhan.doanketthucmon.entity.Seat;
-import com.thantruongnhan.doanketthucmon.entity.enums.SeatType;
 import com.thantruongnhan.doanketthucmon.repository.RoomRepository;
 import com.thantruongnhan.doanketthucmon.repository.SeatRepository;
 import com.thantruongnhan.doanketthucmon.service.SeatService;
@@ -36,32 +35,32 @@ public class SeatServiceImpl implements SeatService {
     }
 
     @Override
-    public Seat createSeat(Long roomId, String rowSeat, Integer number, SeatType type) {
+    public Seat createSeat(Seat seat) {
 
-        Room room = roomRepository.findById(roomId)
+        if (seat.getRoom() == null || seat.getRoom().getId() == null) {
+            throw new RuntimeException("Room is required");
+        }
+
+        Room room = roomRepository.findById(seat.getRoom().getId())
                 .orElseThrow(() -> new RuntimeException("Room not found"));
 
-        // tránh trùng ghế
-        if (seatRepository.existsByRoomIdAndRowSeatAndNumber(roomId, rowSeat, number)) {
+        if (seatRepository.existsByRoomIdAndRowSeatAndNumber(
+                room.getId(), seat.getRowSeat(), seat.getNumber())) {
             throw new RuntimeException("Seat already exists in this room");
         }
 
-        Seat seat = new Seat();
         seat.setRoom(room);
-        seat.setRowSeat(rowSeat);
-        seat.setNumber(number);
-        seat.setType(type);
-
         return seatRepository.save(seat);
     }
 
     @Override
-    public Seat updateSeat(Long id, String rowSeat, Integer number, SeatType type) {
+    public Seat updateSeat(Long id, Seat seat) {
 
         Seat existing = getSeatById(id);
-        existing.setRowSeat(rowSeat);
-        existing.setNumber(number);
-        existing.setType(type);
+
+        existing.setRowSeat(seat.getRowSeat());
+        existing.setNumber(seat.getNumber());
+        existing.setType(seat.getType());
 
         return seatRepository.save(existing);
     }

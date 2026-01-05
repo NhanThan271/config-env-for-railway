@@ -1,9 +1,14 @@
 package com.thantruongnhan.doanketthucmon.entity;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "showtimes")
 public class Showtime {
 

@@ -33,18 +33,24 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public Ticket createTicket(Long showtimeId, Long seatId, Integer price) {
+    public Ticket createTicket(Ticket ticket) {
 
-        Showtime showtime = showtimeRepository.findById(showtimeId)
+        if (ticket.getShowtime() == null || ticket.getShowtime().getId() == null) {
+            throw new RuntimeException("Showtime is required");
+        }
+
+        if (ticket.getSeat() == null || ticket.getSeat().getId() == null) {
+            throw new RuntimeException("Seat is required");
+        }
+
+        Showtime showtime = showtimeRepository.findById(ticket.getShowtime().getId())
                 .orElseThrow(() -> new RuntimeException("Showtime not found"));
 
-        Seat seat = seatRepository.findById(seatId)
+        Seat seat = seatRepository.findById(ticket.getSeat().getId())
                 .orElseThrow(() -> new RuntimeException("Seat not found"));
 
-        Ticket ticket = new Ticket();
         ticket.setShowtime(showtime);
         ticket.setSeat(seat);
-        ticket.setPrice(price);
 
         return ticketRepository.save(ticket);
     }

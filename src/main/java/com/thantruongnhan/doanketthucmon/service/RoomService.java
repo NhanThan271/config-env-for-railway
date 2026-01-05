@@ -12,9 +12,9 @@ public interface RoomService {
 
     List<Room> getRoomsByCinema(Long cinemaId);
 
-    Room createRoom(Long cinemaId, String name);
+    Room createRoom(Room room);
 
-    Room updateRoom(Long id, String name);
+    Room updateRoom(Long id, Room room);
 
     void deleteRoom(Long id);
 }

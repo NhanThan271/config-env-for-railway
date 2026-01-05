@@ -35,27 +35,32 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public Room createRoom(Long cinemaId, String name) {
+    public Room createRoom(Room room) {
 
-        Cinema cinema = cinemaRepository.findById(cinemaId)
-                .orElseThrow(() -> new RuntimeException("Cinema not found"));
-
-        if (roomRepository.existsByCinemaIdAndName(cinemaId, name)) {
-            throw new RuntimeException("Room name already exists in this cinema");
+        if (room.getCinema() == null || room.getCinema().getId() == null) {
+            throw new RuntimeException("Cinema is required");
         }
 
-        Room room = new Room();
-        room.setName(name);
-        room.setCinema(cinema);
+        // optional: check trùng tên phòng trong cùng cinema
+        if (roomRepository.existsByCinemaIdAndName(
+                room.getCinema().getId(),
+                room.getName())) {
+            throw new RuntimeException("Room name already exists in this cinema");
+        }
 
         return roomRepository.save(room);
     }
 
     @Override
-    public Room updateRoom(Long id, String name) {
+    public Room updateRoom(Long id, Room room) {
 
         Room existing = getRoomById(id);
-        existing.setName(name);
+
+        existing.setName(room.getName());
+
+        if (room.getCinema() != null) {
+            existing.setCinema(room.getCinema());
+        }
 
         return roomRepository.save(existing);
     }

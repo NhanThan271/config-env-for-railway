@@ -37,20 +37,17 @@ public class RoomController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public Room createRoom(
-            @RequestParam Long cinemaId,
-            @RequestParam String name) {
-
-        return roomService.createRoom(cinemaId, name);
+    public Room createRoom(@RequestBody Room room) {
+        return roomService.createRoom(room);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public Room updateRoom(
             @PathVariable Long id,
-            @RequestParam String name) {
+            @RequestBody Room room) {
 
-        return roomService.updateRoom(id, name);
+        return roomService.updateRoom(id, room);
     }
 
     @DeleteMapping("/{id}")

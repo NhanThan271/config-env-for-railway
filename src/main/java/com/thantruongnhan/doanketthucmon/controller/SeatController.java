@@ -5,7 +5,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import com.thantruongnhan.doanketthucmon.entity.Seat;
-import com.thantruongnhan.doanketthucmon.entity.enums.SeatType;
 import com.thantruongnhan.doanketthucmon.service.SeatService;
 
 import java.util.List;
@@ -38,24 +37,14 @@ public class SeatController {
 
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public Seat createSeat(
-            @RequestParam Long roomId,
-            @RequestParam String rowSeat,
-            @RequestParam Integer number,
-            @RequestParam SeatType type) {
-
-        return seatService.createSeat(roomId, rowSeat, number, type);
+    public Seat createSeat(@RequestBody Seat seat) {
+        return seatService.createSeat(seat);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public Seat updateSeat(
-            @PathVariable Long id,
-            @RequestParam String rowSeat,
-            @RequestParam Integer number,
-            @RequestParam SeatType type) {
-
-        return seatService.updateSeat(id, rowSeat, number, type);
+    public Seat updateSeat(@PathVariable Long id, @RequestBody Seat seat) {
+        return seatService.updateSeat(id, seat);
     }
 
     @DeleteMapping("/{id}")

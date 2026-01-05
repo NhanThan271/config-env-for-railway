@@ -10,7 +10,7 @@ public interface TicketService {
 
     Ticket getTicketById(Long id);
 
-    Ticket createTicket(Long showtimeId, Long seatId, Integer price);
+    Ticket createTicket(Ticket ticket);
 
     void deleteTicket(Long id);
 
